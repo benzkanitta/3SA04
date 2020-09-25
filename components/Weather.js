@@ -1,22 +1,45 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ImageBackground, StyleSheet } from 'react-native';
 import Forecast from './Forecast';
 
+
+const apiKey = 'cefefcb6118558c1ad15099bc063a337ff'
+
 export default function Weather(props) {
     const [forecastInfo, setForecastInfo] = useState({
-        main: '-',
-        description: '-',
+        main: 'main',
+        description: 'description',
         temp: 0
     })
+
+    useEffect(() => {
+        console.log(`fetching data with zipCode = ${props.zipCode}`)
+        if (props.zipCode) {
+            fetch(`http://api.openweathermap.org/data/2.5/weather?q=${props.zipCode},th&units=metric&APPID=${apiKey}`)
+                .then((response) => response.json())
+
+                .then((json) => {
+                    console.log('json: ', json.weather)
+                    // console.log(json.weather[0].main)
+                    setForecastInfo({
+                        main: json.weather[0].main,
+                        description: json.weather[0].description,
+                        temp: json.main.temp,
+                    });
+                })
+                .catch((error) => {
+                    console.warn(error);
+                });
+        }
+    }, [props.zipCode])
+
+
     return (
         <View>
             <ImageBackground source={require('../bg.jpg')} style={styles.backdrop}>
-            <View style={styles.cover}>
-                <Text style={styles.medium}>Zip Code: {props.zipCode}</Text>
-                <Text style={styles.big}> main {props.main}</Text>
-                <Text style={styles.medium}> description {props.description}</Text>
-                <Text style={styles.medium}> °C {props.temp}</Text>
-                <Forecast {...forecastInfo} />
+                <View style={styles.cover}>
+                    <Text style={styles.medium}>Zip Code:  {props.zipCode}</Text>
+                    <Forecast {...forecastInfo} />
                 </View>
             </ImageBackground>
         </View>
@@ -25,25 +48,20 @@ export default function Weather(props) {
 const styles = StyleSheet.create({
     backdrop: {
         alignItems: 'center',
+
         width: '100%',
         height: '100%'
     },
     cover: {
         backgroundColor: 'black',
         width: '100%',
-        height: 200,
-        opacity:0.4,
-        justifyContent: 'center',
+        height: 250,
+        opacity: 0.4,
         alignItems: 'center',
-    },
-    big: {
-        fontSize: 30,
-        color:"white",
-        
     },
     medium: {
-        alignItems: 'center',
-        fontSize: 24,
-        color:"white",
+        marginTop: 32,
+        fontSize: 15,
+        color: 'white',
     }
 });
